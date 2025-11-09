@@ -3,6 +3,7 @@ from src.ingest_news import get_feeds, parse_feed
 from src.embeddings import embed_article_headline
 from src.vector_database import init_db, is_new_article, store_article, return_similar_articles
 from src.classifier import classify_article
+from src.discord_bot import send_news
 
 def main():
     RSS_urls = {
@@ -30,12 +31,15 @@ def main():
         classification = classify_article(headline=new_article["title"], similar_headlines=similar_headlines)
         if classification == 1:
             print(f'Massive Breaking News: {new_article["title"]}')
+            send_news(new_article["title"], f'<{new_article["link"]}>', "breaking")
         elif classification == 2:
             print(f'Breaking News: {new_article["title"]}')
+            send_news(new_article["title"], f'<{new_article["link"]}>', "semi-breaking")
         elif classification == 3:
             print(f'__Breaking news, minor development: {new_article["title"]}')
         elif classification == 4:
             print(f'__Non-breaking news, minor development: {new_article["title"]}')
+            send_news(new_article["title"], f'<{new_article["link"]}>', "non-breaking")
         elif classification == 5:
             print(f'__Duplicate News: {new_article["title"]}')
         else:
