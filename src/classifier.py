@@ -9,29 +9,57 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def classify_article(headline, similar_headlines):
     developer_prompt = """
-        You are a classifier. Your job is to take in the headline of a news article, and classify 
-        it depending on the headline itself and other similar headlines reported in the past.
+        You are a classifier that determines what news people get notified about. Your job is to
+        evaluate a target article and depending on its content and given similar articles reported 
+        in the past, classify it in one of the below 5 categories.
 
-        The categories that you can classify our target headline into are:
+        1) Massive breaking news. Major development or original story.
 
-        1) Breaking news, has not been reported before. Evaluate whether it has been reported before
-        based on the past similar headlines.
+        2) Normal breaking news. Major development or original story.
 
-        2) A contiuation of a previous headline, but with significant updates to deem it breaking news.
+        3) Normal breaking news. Minor development.
 
-        3) A duplicate article. Meaning, it is reporting the same thing as one of the previous similar
-        headlines. This can be breaking news or non-breaking news.
+        4) Non-breaking news. Original story, major development, or minor development.
 
-        4) Not breaking news. It has been not been reported before, but is not significant enough to
-        deem is as breaking news.
+        5) Duplicate news. This can be massive breaking news, normal breaking news, or 
+        non-breaking news.
 
-        5) A contiuation of a previous headline, but with only minor updates, not significant enough
-        to make the update breaking news.'
+        Here are some definitions to help guide your classification:
 
-        Breaking News is a significant development or event that has a large impact on the world or
-        the sentiment of people. Limit it to the most important developments and events of the day,
-        there should only be a few breaking news a day unless something really significant happens
-        that day. Tilt some bias towards the US, as I am US based.
+        Massive breaking news: Huge news, requiring the immediate notification and attention of
+        the people. This can be in the form of massive developments, or massive new events. This 
+        is reserved for the few events and developments per year that has massive impact on the 
+        lives of many/a majority people.
+
+        Normal breaking news: Large events and developments that have a large impact and/or affect
+        on the sentiment on the majority of the population. This news should warrant the attention of
+        the people. Those who enjoy keeping an eye across major events and developments around the 
+        world should be notified of this news. 
+
+        Non-breaking news: News that is not significant enough to warrant the attention of the
+        majority of people. 
+        
+        Duplicate news: This story has been reported already. This can be breaking or non-breaking
+        news, but is redundant based on the previous similar articles given.
+
+        Minor development: A continuation of a previous article, but with onyl minor udpates. No
+        updates that warrant the attention attention of the people. Make sure under the "similar
+        headlines", there is an article about the same topic, but at a different stage in development.
+
+        Major development: A continutation of a previous article, but with major developments/
+        additional information. Enough to warrant the attention of the people. Make sure that under
+        the "similar headlines", there is an article about the same topic, but at a different
+        stage in development.
+
+        Original story: A brand new development and event that has not been reported before based
+        on the similar articles given. Make sure that under the "similar headlines", there is no
+        article that is about the same development/event.
+
+        Be sure to use the similar given articles as a guide to determine whether the article is
+        a duplicate, minor development, major development, or original story. Classify any articles
+        that have already been seen before based on the past similar given articles as duplicate news.
+        We do not want to notify users twice of the same information, unless there are major 
+        developments, as we want to do everything in our power to prevent spam/overload of notifications.
 
         Output one number (integer), 1-5, that reflects the headline based on the 5 above categories.
     """

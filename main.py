@@ -1,6 +1,4 @@
 # imports
-import time
-
 from src.ingest_news import get_feeds, parse_feed
 from src.embeddings import embed_article_headline
 from src.vector_database import init_db, is_new_article, store_article, return_similar_articles
@@ -30,8 +28,18 @@ def main():
         similar_articles = return_similar_articles(collection=collection, embedding=embedding)
         similar_headlines = [article["title"] for article in similar_articles]
         classification = classify_article(headline=new_article["title"], similar_headlines=similar_headlines)
-        if classification < 3:
+        if classification == 1:
+            print(f'Massive Breaking News: {new_article["title"]}')
+        elif classification == 2:
             print(f'Breaking News: {new_article["title"]}')
+        elif classification == 3:
+            print(f'__Breaking news, minor development: {new_article["title"]}')
+        elif classification == 4:
+            print(f'__Non-breaking news, minor development: {new_article["title"]}')
+        elif classification == 5:
+            print(f'__Duplicate News: {new_article["title"]}')
+        else:
+            print("[Classification Error]")
         
         new_article_dict = new_article.copy()
         new_article_dict["embedding"] = embedding
@@ -39,19 +47,21 @@ def main():
         new_article_dict["published_at"] = new_article["published_at"]
         store_article(collection=collection, article_dict=new_article_dict)
 
-    print("Deleting articles over 72 hours old")
     all_articles = collection.get()
-    cutoff_timestamp = int(time.time()) - (72 * 3600)
+    feed_ids = set(article["id"] for article in feed_list)
 
-    ids_to_delete = []
-    for i, metadata in enumerate(all_articles["metadatas"]):
-        if metadata["published_at"] < cutoff_timestamp:
-            ids_to_delete.append(all_articles["ids"][i])
+    articles_to_delete = list()
+    for id in all_articles["ids"]:
+        if id not in feed_ids:
+            articles_to_delete.append(id)
+    
+    if articles_to_delete:
+        collection.delete(ids=articles_to_delete)
 
-    if ids_to_delete:
-        collection.delete(ids=ids_to_delete)
-
-    print(f"Deleted {len(ids_to_delete)} articles")
+    if len(articles_to_delete) == 1:
+        print(f'Deleted {len(articles_to_delete)} old article')
+    else:
+        print(f'Deleted {len(articles_to_delete)} old articles')
 
 if __name__ == "__main__":
     main()
