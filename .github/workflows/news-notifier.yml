@@ -36,7 +36,9 @@ jobs:
       - name: Run news notifier
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_WEBHOOK_BREAKING: ${{ secrets.DISCORD_WEBHOOK_BREAKING }}
+          DISCORD_WEBHOOK_SEMI_BREAKING: ${{ secrets.DISCORD_WEBHOOK_SEMI_BREAKING }}
+          DISCORD_WEBHOOK_NON_BREAKING: ${{ secrets.DISCORD_WEBHOOK_NON_BREAKING }}
         run: python main.py
 
       - name: Save ChromaDB cache
